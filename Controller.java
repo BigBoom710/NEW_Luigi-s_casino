@@ -1,10 +1,10 @@
-class controller {
-    private final model gameModel;
-    private final viewer gameView;
+class Controller {
+    private final Model gameModel;
+    private final Viewer gameView;
 
-    controller() {
-        this.gameModel = new model();
-        this.gameView = new viewer();
+    Controller() {
+        this.gameModel = new Model();
+        this.gameView = new Viewer();
     }
 
     void startGame() {
@@ -13,7 +13,7 @@ class controller {
 
         while (gameModel.hasCardsForRound()) {
             gameView.waitForRoundStart(gameModel.getNextRoundNumber(), playerName);
-            model.RoundResult roundResult = gameModel.playRound();
+            Model.RoundResult roundResult = gameModel.playRound();
             gameView.showRoundResult(playerName, roundResult);
         }
 
@@ -21,6 +21,6 @@ class controller {
     }
 
     public static void main(String[] args) {
-        new controller().startGame();
+        new Controller().startGame();
     }
 }

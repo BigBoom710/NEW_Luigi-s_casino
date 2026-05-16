@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-class viewer {
+class Viewer {
     private final Scanner scanner = new Scanner(System.in);
 
     void showWelcome() {
@@ -11,7 +11,7 @@ class viewer {
     String askPlayerName() {
         System.out.print("Inserisci il tuo nome: ");
         String name = scanner.nextLine().trim();
-        return name.isEmpty() ? "Giocatore" : name;
+        return name.isEmpty() ? Model.DEFAULT_PLAYER_NAME : name;
     }
 
     void waitForRoundStart(int round, String playerName) {
@@ -21,7 +21,7 @@ class viewer {
         scanner.nextLine();
     }
 
-    void showRoundResult(String playerName, model.RoundResult result) {
+    void showRoundResult(String playerName, Model.RoundResult result) {
         System.out.println(playerName + " pesca: " + result.getPlayerCard());
         System.out.println("Luigi pesca: " + result.getLuigiCard());
 
@@ -34,9 +34,9 @@ class viewer {
         System.out.println("Punteggio -> " + playerName + ": " + result.getPlayerScore() + " | Luigi: " + result.getLuigiScore());
     }
 
-    void showFinalResult(String playerName, model gameModel) {
+    void showFinalResult(String playerName, Model game) {
         System.out.println();
         System.out.println("=== Risultato finale ===");
-        System.out.println(playerName + " " + gameModel.getFinalWinner());
+        System.out.println(playerName + " " + game.getFinalWinner());
     }
 }

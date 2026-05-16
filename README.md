@@ -6,11 +6,11 @@ Versione base in MVC del gioco di carte di Luigi's Casino (Super Mario), giocabi
 
 ```bash
 javac *.java
-java controller
+java Controller
 ```
 
 ## Struttura MVC
 
-- `model.java`: logica del mazzo, round e punteggio.
-- `viewer.java`: input/output da console.
-- `controller.java`: coordina il flusso di gioco.
+- `Model.java`: logica del mazzo, round e punteggio.
+- `Viewer.java`: input/output da console.
+- `Controller.java`: coordina il flusso di gioco.

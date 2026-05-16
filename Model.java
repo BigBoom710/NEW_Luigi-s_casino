@@ -4,15 +4,16 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
-class model {
+class Model {
     private static final int MAX_ROUNDS = 5;
+    static final String DEFAULT_PLAYER_NAME = "Giocatore";
 
     private final Deque<Integer> deck = new ArrayDeque<>();
     private int playerScore;
     private int luigiScore;
     private int round;
 
-    model() {
+    Model() {
         List<Integer> cards = new ArrayList<>();
         for (int value = 1; value <= 13; value++) {
             for (int suit = 0; suit < 4; suit++) {
@@ -35,7 +36,7 @@ class model {
         String winner;
         if (playerCard > luigiCard) {
             playerScore++;
-            winner = "Giocatore";
+            winner = DEFAULT_PLAYER_NAME;
         } else if (luigiCard > playerCard) {
             luigiScore++;
             winner = "Luigi";
