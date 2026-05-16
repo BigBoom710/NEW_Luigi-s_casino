@@ -1,6 +1,7 @@
 import java.util.Scanner;
 
 class Viewer {
+    private static final String DEFAULT_PLAYER_NAME = "Giocatore";
     private final Scanner scanner = new Scanner(System.in);
 
     void showWelcome() {
@@ -11,7 +12,7 @@ class Viewer {
     String askPlayerName() {
         System.out.print("Inserisci il tuo nome: ");
         String name = scanner.nextLine().trim();
-        return name.isEmpty() ? Model.DEFAULT_PLAYER_NAME : name;
+        return name.isEmpty() ? DEFAULT_PLAYER_NAME : name;
     }
 
     void waitForRoundStart(int round, String playerName) {
