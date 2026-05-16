@@ -33,18 +33,18 @@ class Model {
         int luigiCard = deck.removeFirst();
         round++;
 
-        String winner;
+        RoundResult.RoundWinner winner;
         if (playerCard > luigiCard) {
             playerScore++;
-            winner = DEFAULT_PLAYER_NAME;
+            winner = RoundResult.RoundWinner.PLAYER;
         } else if (luigiCard > playerCard) {
             luigiScore++;
-            winner = "Luigi";
+            winner = RoundResult.RoundWinner.LUIGI;
         } else {
-            winner = "Pareggio";
+            winner = RoundResult.RoundWinner.TIE;
         }
 
-        return new RoundResult(round, playerCard, luigiCard, winner, playerScore, luigiScore);
+        return new RoundResult(playerCard, luigiCard, winner, playerScore, luigiScore);
     }
 
     String getFinalWinner() {
@@ -62,24 +62,20 @@ class Model {
     }
 
     static class RoundResult {
-        private final int round;
+        enum RoundWinner { PLAYER, LUIGI, TIE }
+
         private final int playerCard;
         private final int luigiCard;
-        private final String winner;
+        private final RoundWinner winner;
         private final int playerScore;
         private final int luigiScore;
 
-        RoundResult(int round, int playerCard, int luigiCard, String winner, int playerScore, int luigiScore) {
-            this.round = round;
+        RoundResult(int playerCard, int luigiCard, RoundWinner winner, int playerScore, int luigiScore) {
             this.playerCard = playerCard;
             this.luigiCard = luigiCard;
             this.winner = winner;
             this.playerScore = playerScore;
             this.luigiScore = luigiScore;
-        }
-
-        int getRound() {
-            return round;
         }
 
         int getPlayerCard() {
@@ -90,7 +86,7 @@ class Model {
             return luigiCard;
         }
 
-        String getWinner() {
+        RoundWinner getWinner() {
             return winner;
         }
 

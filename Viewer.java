@@ -25,10 +25,10 @@ class Viewer {
         System.out.println(playerName + " pesca: " + result.getPlayerCard());
         System.out.println("Luigi pesca: " + result.getLuigiCard());
 
-        if ("Pareggio".equals(result.getWinner())) {
-            System.out.println("Esito round: Pareggio!");
-        } else {
-            System.out.println("Esito round: Vince " + result.getWinner() + "!");
+        switch (result.getWinner()) {
+            case PLAYER -> System.out.println("Esito round: Vince " + playerName + "!");
+            case LUIGI -> System.out.println("Esito round: Vince Luigi!");
+            case TIE -> System.out.println("Esito round: Pareggio!");
         }
 
         System.out.println("Punteggio -> " + playerName + ": " + result.getPlayerScore() + " | Luigi: " + result.getLuigiScore());
@@ -38,5 +38,9 @@ class Viewer {
         System.out.println();
         System.out.println("=== Risultato finale ===");
         System.out.println(playerName + " " + game.getFinalWinner());
+    }
+
+    void close() {
+        scanner.close();
     }
 }

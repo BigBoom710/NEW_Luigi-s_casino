@@ -8,16 +8,20 @@ class Controller {
     }
 
     void startGame() {
-        gameView.showWelcome();
-        String playerName = gameView.askPlayerName();
+        try {
+            gameView.showWelcome();
+            String playerName = gameView.askPlayerName();
 
-        while (gameModel.hasCardsForRound()) {
-            gameView.waitForRoundStart(gameModel.getNextRoundNumber(), playerName);
-            Model.RoundResult roundResult = gameModel.playRound();
-            gameView.showRoundResult(playerName, roundResult);
+            while (gameModel.hasCardsForRound()) {
+                gameView.waitForRoundStart(gameModel.getNextRoundNumber(), playerName);
+                Model.RoundResult roundResult = gameModel.playRound();
+                gameView.showRoundResult(playerName, roundResult);
+            }
+
+            gameView.showFinalResult(playerName, gameModel);
+        } finally {
+            gameView.close();
         }
-
-        gameView.showFinalResult(playerName, gameModel);
     }
 
     public static void main(String[] args) {
