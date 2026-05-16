@@ -34,10 +34,10 @@ class Viewer {
         System.out.println("Punteggio -> " + playerName + ": " + result.getPlayerScore() + " | Luigi: " + result.getLuigiScore());
     }
 
-    void showFinalResult(String playerName, Model game) {
+    void showFinalResult(Model game) {
         System.out.println();
         System.out.println("=== Risultato finale ===");
-        System.out.println(playerName + " " + game.getFinalWinner());
+        System.out.println(game.getFinalWinner());
     }
 
     void close() {

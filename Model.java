@@ -6,6 +6,7 @@ import java.util.List;
 
 class Model {
     private static final int MAX_ROUNDS = 5;
+    private static final int MAX_CARD_VALUE = 13;
     static final String DEFAULT_PLAYER_NAME = "Giocatore";
 
     private final Deque<Integer> deck = new ArrayDeque<>();
@@ -15,7 +16,7 @@ class Model {
 
     Model() {
         List<Integer> cards = new ArrayList<>();
-        for (int value = 1; value <= 13; value++) {
+        for (int value = 1; value <= MAX_CARD_VALUE; value++) {
             for (int suit = 0; suit < 4; suit++) {
                 cards.add(value);
             }

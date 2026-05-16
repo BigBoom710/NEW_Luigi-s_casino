@@ -18,7 +18,7 @@ class Controller {
                 gameView.showRoundResult(playerName, roundResult);
             }
 
-            gameView.showFinalResult(playerName, gameModel);
+            gameView.showFinalResult(gameModel);
         } finally {
             gameView.close();
         }
