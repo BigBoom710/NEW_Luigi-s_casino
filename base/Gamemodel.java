@@ -33,13 +33,15 @@ public class GameModel {
     }
 
     void mossaLuigi() {
-        Map<String, Integer> conteggio = new HashMap<>();
+        // Contiamo le frequenze usando un semplice array
+        int[] frequenze = new int[SIMBOLI.length];
         for (String carta : manoLuigi) {
-            conteggio.merge(carta, 1, Integer::sum);
+            frequenze[indiceSimbolo(carta)]++;
         }
+        
         boolean[] daScartare = new boolean[DIMENSIONE];
         for (int i = 0; i < DIMENSIONE; i++) {
-            if (conteggio.get(manoLuigi[i]) == 1) {
+            if (frequenze[indiceSimbolo(manoLuigi[i])] == 1) {
                 daScartare[i] = true;
             }
         }
@@ -47,22 +49,31 @@ public class GameModel {
     }
 
     int[] valuta(String[] mano) {
-        Map<String, Integer> conteggio = new HashMap<>();
+        // 1. Contiamo quante volte appare ogni simbolo nella mano
+        int[] frequenze = new int[SIMBOLI.length];
         for (String carta : mano) {
-            conteggio.merge(carta, 1, Integer::sum);
+            frequenze[indiceSimbolo(carta)]++;
         }
 
-        List<Map.Entry<String, Integer>> voci = new ArrayList<>(conteggio.entrySet());
-        voci.sort((a, b) -> {
-            if (b.getValue() != a.getValue()) {
-                return b.getValue() - a.getValue();
+        int primaFrequenza = 0;
+        int secondaFrequenza = 0;
+        int migliorIndice = 0;
+
+        // 2. Troviamo la frequenza massima e la seconda massima con un solo ciclo.
+        // Scorriamo l'array al contrario (da 5 a 0) così, in caso di parità di frequenza,
+        // il simbolo con l'indice più alto (più forte) prenderà automaticamente il sopravvento.
+        for (int i = SIMBOLI.length - 1; i >= 0; i--) {
+            int f = frequenze[i];
+            if (f > primaFrequenza) {
+                secondaFrequenza = primaFrequenza;
+                primaFrequenza = f;
+                migliorIndice = i;
+            } else if (f > secondaFrequenza) {
+                secondaFrequenza = f;
             }
-            return indiceSimbolo(b.getKey()) - indiceSimbolo(a.getKey());
-        });
+        }
 
-        int primaFrequenza  = voci.get(0).getValue();
-        int secondaFrequenza = voci.size() > 1 ? voci.get(1).getValue() : 0;
-
+        // 3. Calcolo del punteggio identico a prima
         int punteggio;
         if (primaFrequenza == 5) {
             punteggio = 6;
@@ -80,7 +91,7 @@ public class GameModel {
             punteggio = 0;
         }
 
-        return new int[]{ punteggio, indiceSimbolo(voci.get(0).getKey()) };
+        return new int[]{ punteggio, migliorIndice };
     }
 
     int indiceSimbolo(String simbolo) {
@@ -92,7 +103,6 @@ public class GameModel {
         return 0;
     }
 
-    // 1 = vince giocatore, -1 = vince luigi, 0 = pari
     int risultato() {
         int[] punteggioGiocatore = valuta(manoGiocatore);
         int[] punteggioLuigi     = valuta(manoLuigi);
