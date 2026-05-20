@@ -2,167 +2,167 @@ import java.util.*;
 
 public class GameModel {
 
-    public enum State { IDLE, PLAYER_TURN, RESULT }
+    static final int ATTESA = 0, TURNO_GIOCATORE = 1, RISULTATO = 2;
 
     // Peggiore → migliore: Stella < Mario < Luigi < Fiore < Fungo < Nuvola
-    public static final String[] CHARACTERS = { "Stella", "Mario", "Luigi", "Fiore", "Fungo", "Nuvola" };
+    public static final String[] SIMBOLI = { "Stella", "Mario", "Luigi", "Fiore", "Fungo", "Nuvola" };
 
-    public static final String[] HAND_NAMES = {
+    public static final String[] COMBINAZIONI = {
         "Niente", "Coppia", "Doppia coppia", "Tris", "Full house", "Poker", "Cinque uguali"
     };
 
-    public static final int HAND_SIZE = 5;
+    public static final int DIMENSIONE = 5;
 
-    private State    state    = State.IDLE;
-    private String[] playerHand = new String[HAND_SIZE];
-    private String[] luigiHand  = new String[HAND_SIZE];
-    private boolean[] discard   = new boolean[HAND_SIZE];
-    private int[] playerResult, luigiResult;
-    private int outcome;   // 1 = vince player, -1 = vince luigi, 0 = pareggio
-    private int wins, losses, draws;
-    private List<String> deck = new ArrayList<>();
+    private int stato = ATTESA;
+    private String[] manoGiocatore = new String[DIMENSIONE];
+    private String[] manoLuigi     = new String[DIMENSIONE];
+    private boolean[] daScartare   = new boolean[DIMENSIONE];
+    private int[] punteggioGiocatore, punteggioLuigi;
+    private int esito;   // 1 = vince giocatore, -1 = vince luigi, 0 = pareggio
+    private int vittorie, sconfitte, pareggi;
+    private List<String> mazzo = new ArrayList<>();
 
     // ── Mazzo ────────────────────────────────────────────────────────────────
 
-    private void buildDeck() {
-        deck.clear();
-        for (int k = 0; k < 5; k++)          // 5 copie × 6 simboli = 30 carte
-            for (String ch : CHARACTERS)
-                deck.add(ch);
-        Collections.shuffle(deck);
+    private void costruisciMazzo() {
+        mazzo.clear();
+        for (int copia = 0; copia < 5; copia++)          // 5 copie x 6 simboli = 30 carte
+            for (String simbolo : SIMBOLI)
+                mazzo.add(simbolo);
+        Collections.shuffle(mazzo);
     }
 
-    private String draw() { return deck.remove(deck.size() - 1); }
+    private String pesca() { return mazzo.remove(mazzo.size() - 1); }
 
     // ── Azioni ───────────────────────────────────────────────────────────────
 
-    public void deal() {
-        buildDeck();
-        for (int i = 0; i < HAND_SIZE; i++) {
-            playerHand[i] = draw();
-            luigiHand[i]  = draw();
-            discard[i]    = false;
+    public void distribuisci() {
+        costruisciMazzo();
+        for (int i = 0; i < DIMENSIONE; i++) {
+            manoGiocatore[i] = pesca();
+            manoLuigi[i]     = pesca();
+            daScartare[i]    = false;
         }
-        state = State.PLAYER_TURN;
+        stato = TURNO_GIOCATORE;
     }
 
-    public void toggleDiscard(int i) {
-        if (state == State.PLAYER_TURN) discard[i] = !discard[i];
+    public void toggleScarto(int i) {
+        if (stato == TURNO_GIOCATORE) daScartare[i] = !daScartare[i];
     }
 
-    public void drawAndResolve() {
-        if (state != State.PLAYER_TURN) return;
+    public void pescaERisolvi() {
+        if (stato != TURNO_GIOCATORE) return;
 
         // Giocatore pesca le carte scartate
-        for (int i = 0; i < HAND_SIZE; i++)
-            if (discard[i]) playerHand[i] = draw();
+        for (int i = 0; i < DIMENSIONE; i++)
+            if (daScartare[i]) manoGiocatore[i] = pesca();
 
         // Luigi scarta i singoli (strategia ufficiale del gioco originale)
-        for (int i = 0; i < HAND_SIZE; i++)
-            if (luigiShouldDiscard(i)) luigiHand[i] = draw();
+        for (int i = 0; i < DIMENSIONE; i++)
+            if (luigiDeveScartare(i)) manoLuigi[i] = pesca();
 
         // Valuta e confronta
-        playerResult = evaluate(playerHand);
-        luigiResult  = evaluate(luigiHand);
-        outcome = compare(playerResult, luigiResult);
+        punteggioGiocatore = valuta(manoGiocatore);
+        punteggioLuigi     = valuta(manoLuigi);
+        esito = confronta(punteggioGiocatore, punteggioLuigi);
 
-        if      (outcome > 0) wins++;
-        else if (outcome < 0) losses++;
-        else                  draws++;
+        if      (esito > 0) vittorie++;
+        else if (esito < 0) sconfitte++;
+        else                pareggi++;
 
-        state = State.RESULT;
+        stato = RISULTATO;
     }
 
     // Vera strategia di Luigi: scarta tutte le carte che compaiono una sola volta
-    private boolean luigiShouldDiscard(int i) {
-        int count = 0;
-        for (String c : luigiHand)
-            if (c.equals(luigiHand[i])) count++;
-        return count == 1;
+    private boolean luigiDeveScartare(int i) {
+        int contatore = 0;
+        for (String carta : manoLuigi)
+            if (carta.equals(manoLuigi[i])) contatore++;
+        return contatore == 1;
     }
 
-    // Costruisce la mappa frequenze senza lambda
-    private Map<String, Integer> buildFreq(String[] hand) {
-        Map<String, Integer> freq = new HashMap<>();
-        for (String c : hand) {
-            Integer cur = freq.get(c);
-            freq.put(c, cur == null ? 1 : cur + 1);
+    // Costruisce la mappa frequenze
+    private Map<String, Integer> costruisciFrequenze(String[] mano) {
+        Map<String, Integer> frequenze = new HashMap<>();
+        for (String carta : mano) {
+            Integer corrente = frequenze.get(carta);
+            frequenze.put(carta, corrente == null ? 1 : corrente + 1);
         }
-        return freq;
+        return frequenze;
     }
 
     // Restituisce {rankMano, rankPrimario, rankSecondario} per confronto
-    private int[] evaluate(String[] hand) {
-        final Map<String, Integer> freq = buildFreq(hand);
+    private int[] valuta(String[] mano) {
+        final Map<String, Integer> frequenze = costruisciFrequenze(mano);
 
         // Ordina per frequenza desc, poi per valore carta desc
-        List<Map.Entry<String, Integer>> e = new ArrayList<>(freq.entrySet());
-        Collections.sort(e, new Comparator<Map.Entry<String, Integer>>() {
+        List<Map.Entry<String, Integer>> voci = new ArrayList<>(frequenze.entrySet());
+        Collections.sort(voci, new Comparator<Map.Entry<String, Integer>>() {
             @Override
             public int compare(Map.Entry<String, Integer> a, Map.Entry<String, Integer> b) {
-                int d = Integer.compare(b.getValue(), a.getValue());
-                return d != 0 ? d : Integer.compare(cardRank(b.getKey()), cardRank(a.getKey()));
+                int differenza = Integer.compare(b.getValue(), a.getValue());
+                return differenza != 0 ? differenza : Integer.compare(indiceSimbolo(b.getKey()), indiceSimbolo(a.getKey()));
             }
         });
 
-        int f0 = e.get(0).getValue();
-        int f1 = e.size() > 1 ? e.get(1).getValue() : 0;
-        int r0 = cardRank(e.get(0).getKey());
-        int r1 = e.size() > 1 ? cardRank(e.get(1).getKey()) : 0;
+        int primaFrequenza  = voci.get(0).getValue();
+        int secondaFrequenza = voci.size() > 1 ? voci.get(1).getValue() : 0;
+        int primoIndice     = indiceSimbolo(voci.get(0).getKey());
+        int secondoIndice   = voci.size() > 1 ? indiceSimbolo(voci.get(1).getKey()) : 0;
 
-        if (f0 == 5)             return new int[]{ 6, r0, 0  };
-        if (f0 == 4)             return new int[]{ 5, r0, 0  };
-        if (f0 == 3 && f1 == 2)  return new int[]{ 4, r0, r1 };
-        if (f0 == 3)             return new int[]{ 3, r0, 0  };
-        if (f0 == 2 && f1 == 2)  return new int[]{ 2, r0, r1 };
-        if (f0 == 2)             return new int[]{ 1, r0, 0  };
-        return new int[]{ 0, r0, 0 };  // niente: valore carta più alta
+        if (primaFrequenza == 5)                              return new int[]{ 6, primoIndice, 0            };
+        if (primaFrequenza == 4)                              return new int[]{ 5, primoIndice, 0            };
+        if (primaFrequenza == 3 && secondaFrequenza == 2)    return new int[]{ 4, primoIndice, secondoIndice };
+        if (primaFrequenza == 3)                              return new int[]{ 3, primoIndice, 0            };
+        if (primaFrequenza == 2 && secondaFrequenza == 2)    return new int[]{ 2, primoIndice, secondoIndice };
+        if (primaFrequenza == 2)                              return new int[]{ 1, primoIndice, 0            };
+        return new int[]{ 0, primoIndice, 0 };  // niente: valore carta piu alta
     }
 
     // Confronto lessicografico: positivo = a vince
-    private int compare(int[] a, int[] b) {
+    private int confronta(int[] a, int[] b) {
         for (int i = 0; i < a.length; i++)
             if (a[i] != b[i]) return Integer.compare(a[i], b[i]);
         return 0;
     }
 
-    private int cardRank(String name) {
-        for (int i = 0; i < CHARACTERS.length; i++)
-            if (CHARACTERS[i].equals(name)) return i;
+    private int indiceSimbolo(String simbolo) {
+        for (int i = 0; i < SIMBOLI.length; i++)
+            if (SIMBOLI[i].equals(simbolo)) return i;
         return 0;
     }
 
-    public void nextRound() { state = State.IDLE; }
+    public void prossimoTurno() { stato = ATTESA; }
 
     // ── Getter ────────────────────────────────────────────────────────────────
 
-    public State   getState()            { return state; }
-    public String  getPlayerCard(int i)  { return playerHand[i]; }
-    public String  getLuigiCard(int i)   { return luigiHand[i]; }
+    public int     getStato()                   { return stato; }
+    public String  getCartaGiocatore(int i)     { return manoGiocatore[i]; }
+    public String  getCartaLuigi(int i)         { return manoLuigi[i]; }
 
     // Restituisce le carte ordinate per gruppo (freq desc, poi valore desc)
     // Usato dalla View a fine partita per mostrare coppie/tris raggruppati
-    public String[] sortedHand(String[] hand) {
-        final Map<String, Integer> freq = buildFreq(hand);
-        List<String> sorted = new ArrayList<>(Arrays.asList(hand));
-        Collections.sort(sorted, new Comparator<String>() {
+    public String[] manoOrdinata(String[] mano) {
+        final Map<String, Integer> frequenze = costruisciFrequenze(mano);
+        List<String> ordinata = new ArrayList<>(Arrays.asList(mano));
+        Collections.sort(ordinata, new Comparator<String>() {
             @Override
             public int compare(String a, String b) {
-                int d = Integer.compare(freq.get(b), freq.get(a));
-                return d != 0 ? d : Integer.compare(cardRank(b), cardRank(a));
+                int differenza = Integer.compare(frequenze.get(b), frequenze.get(a));
+                return differenza != 0 ? differenza : Integer.compare(indiceSimbolo(b), indiceSimbolo(a));
             }
         });
-        return sorted.toArray(new String[0]);
+        return ordinata.toArray(new String[0]);
     }
 
-    public String[] getSortedPlayerHand() { return sortedHand(playerHand); }
-    public String[] getSortedLuigiHand()  { return sortedHand(luigiHand); }
-    public boolean isDiscarded(int i)    { return discard[i]; }
-    public int[]   getPlayerResult()     { return playerResult; }
-    public int[]   getLuigiResult()      { return luigiResult; }
-    public int     getOutcome()          { return outcome; }
-    public int     getWins()             { return wins; }
-    public int     getLosses()           { return losses; }
-    public int     getDraws()            { return draws; }
-    public String  handName(int[] r)     { return HAND_NAMES[r[0]]; }
+    public String[] getManoOrdinataGiocatore()  { return manoOrdinata(manoGiocatore); }
+    public String[] getManoOrdinataLuigi()       { return manoOrdinata(manoLuigi); }
+    public boolean  isScartata(int i)            { return daScartare[i]; }
+    public int[]    getPunteggioGiocatore()      { return punteggioGiocatore; }
+    public int[]    getPunteggioLuigi()          { return punteggioLuigi; }
+    public int      getEsito()                   { return esito; }
+    public int      getVittorie()                { return vittorie; }
+    public int      getSconfitte()               { return sconfitte; }
+    public int      getPareggi()                 { return pareggi; }
+    public String   nomeCombinazione(int[] p)    { return COMBINAZIONI[p[0]]; }
 }
