@@ -3,93 +3,93 @@ import java.awt.Color;
 
 public class GameController {
 
-    private final GameModel model;
-    private final GameView  view;
+    private final GameModel modello;
+    private final GameView  vista;
 
-    public GameController(GameModel model, GameView view) {
-        this.model = model;
-        this.view  = view;
-        registerListeners();
-        refresh();
+    public GameController(GameModel modello, GameView vista) {
+        this.modello = modello;
+        this.vista   = vista;
+        registraAscoltatori();
+        aggiorna();
     }
 
-    private void registerListeners() {
-        view.addActionListener(e -> handleAction());
+    private void registraAscoltatori() {
+        vista.aggiungiAscoltatoreAzione(e -> gestisciAzione());
 
-        for (int i = 0; i < GameModel.HAND_SIZE; i++) {
-            final int idx = i;
-            view.addScartaListener(i, e -> {
-                model.toggleDiscard(idx);
-                view.showPlayerCard(idx, model.getPlayerCard(idx), model.isDiscarded(idx));
+        for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+            final int indice = i;
+            vista.aggiungiAscoltatoreScarto(i, e -> {
+                modello.toggleScarto(indice);
+                vista.mostraCartaGiocatore(indice, modello.getCartaGiocatore(indice), modello.isScartata(indice));
             });
         }
     }
 
-    private void handleAction() {
-        switch (model.getState()) {
-            case IDLE:        model.deal();           break;
-            case PLAYER_TURN: model.drawAndResolve(); break;
-            case RESULT:      model.nextRound();      break;
+    private void gestisciAzione() {
+        switch (modello.getStato()) {
+            case GameModel.ATTESA:        modello.distribuisci();           break;
+            case GameModel.TURNO_GIOCATORE: modello.pescaERisolvi();        break;
+            case GameModel.RISULTATO:     modello.prossimoTurno();          break;
         }
-        refresh();
+        aggiorna();
     }
 
-    private void refresh() {
-        switch (model.getState()) {
+    private void aggiorna() {
+        switch (modello.getStato()) {
 
-            case IDLE:
-                for (int i = 0; i < GameModel.HAND_SIZE; i++) {
-                    view.showPlayerCard(i, null, false);
-                    view.showLuigiCard(i, "");
+            case GameModel.ATTESA:
+                for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+                    vista.mostraCartaGiocatore(i, null, false);
+                    vista.mostraCartaLuigi(i, "");
                 }
-                view.setScartaEnabled(false);
-                view.setActionLabel("Inizia");
-                view.clearBanner();
-                view.resetHandNames();
+                vista.impostaScartoAbilitato(false);
+                vista.impostaEtichettaAzione("Inizia");
+                vista.pulisciBanner();
+                vista.reimpostaNomiMani();
                 break;
 
-            case PLAYER_TURN:
-                for (int i = 0; i < GameModel.HAND_SIZE; i++) {
-                    view.showPlayerCard(i, model.getPlayerCard(i), model.isDiscarded(i));
-                    view.showLuigiCard(i, null);  // coperta
+            case GameModel.TURNO_GIOCATORE:
+                for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+                    vista.mostraCartaGiocatore(i, modello.getCartaGiocatore(i), modello.isScartata(i));
+                    vista.mostraCartaLuigi(i, null);
                 }
-                view.setScartaEnabled(true);
-                view.setActionLabel("Pesca");
-                view.clearBanner();
-                view.resetHandNames();
+                vista.impostaScartoAbilitato(true);
+                vista.impostaEtichettaAzione("Pesca");
+                vista.pulisciBanner();
+                vista.reimpostaNomiMani();
                 break;
 
-            case RESULT:
-                String[] sortedPlayer = model.getSortedPlayerHand();
-                String[] sortedLuigi  = model.getSortedLuigiHand();
-                for (int i = 0; i < GameModel.HAND_SIZE; i++) {
-                    view.showPlayerCard(i, sortedPlayer[i], false);
-                    view.showLuigiCard(i, sortedLuigi[i]);
+            case GameModel.RISULTATO:
+                String[] manoOrdinataGiocatore = modello.getManoOrdinataGiocatore();
+                String[] manoOrdinataLuigi     = modello.getManoOrdinataLuigi();
+                for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+                    vista.mostraCartaGiocatore(i, manoOrdinataGiocatore[i], false);
+                    vista.mostraCartaLuigi(i, manoOrdinataLuigi[i]);
                 }
-                view.setScartaEnabled(false);
-                view.setActionLabel("Ancora");
-                view.setPlayerHandName(model.handName(model.getPlayerResult()));
-                view.setLuigiHandName(model.handName(model.getLuigiResult()));
+                vista.impostaScartoAbilitato(false);
+                vista.impostaEtichettaAzione("Ancora");
+                vista.impostaNomeManoGiocatore(modello.nomeCombinazione(modello.getPunteggioGiocatore()));
+                vista.impostaNomeManoLuigi(modello.nomeCombinazione(modello.getPunteggioLuigi()));
 
-                int out = model.getOutcome();
-                if (out > 0)
-                    view.showBanner("HAI VINTO!", new Color(0, 100, 0), new Color(200, 255, 200));
-                else if (out < 0)
-                    view.showBanner("HAI PERSO!", new Color(130, 0, 0), new Color(255, 200, 200));
+                int esito = modello.getEsito();
+                if (esito > 0)
+                    vista.mostraBanner("HAI VINTO!", new Color(0, 100, 0), new Color(200, 255, 200));
+                else if (esito < 0)
+                    vista.mostraBanner("HAI PERSO!", new Color(130, 0, 0), new Color(255, 200, 200));
                 else
-                    view.showBanner("PAREGGIO", new Color(80, 60, 0), new Color(255, 240, 180));
+                    vista.mostraBanner("PAREGGIO", new Color(80, 60, 0), new Color(255, 240, 180));
                 break;
         }
 
-        view.updateScore(model.getWins(), model.getLosses(), model.getDraws());
+        vista.aggiornaPunteggio(modello.getVittorie(), modello.getSconfitte(), modello.getPareggi());
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            GameModel model = new GameModel();
-            GameView  view  = new GameView();
-            new GameController(model, view);
-            view.setVisible(true);
+            GameModel modello = new GameModel();
+            GameView  vista   = new GameView();
+            new GameController(modello, vista);
+            vista.setVisible(true);
         });
     }
 }

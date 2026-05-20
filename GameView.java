@@ -4,176 +4,210 @@ import java.awt.event.ActionListener;
 
 public class GameView extends JFrame {
 
-    // Colori per simbolo (stesso ordine di GameModel.CHARACTERS)
-    private static final Color[] CARD_BG = {
-        new Color(255, 220,  50),  // Stella  - giallo oro
-        new Color(220,  80,  80),  // Mario   - rosso
-        new Color( 80, 180,  80),  // Luigi   - verde
-        new Color(255, 140,  40),  // Fiore   - arancione
-        new Color(170, 100, 210),  // Fungo   - viola
-        new Color(140, 200, 255),  // Nuvola  - azzurro
+    private static final String[] PERCORSI_IMMAGINI = {
+        "carte/carta_5_copia.png", 
+        "carte/carta_1_copia.png", 
+        "carte/carta_2_copia.png", 
+        "carte/carta_3_copia.png", 
+        "carte/carta_4_copia.png", 
+        "carte/carta_6_copia.png"  
     };
-    private static final Color FACEDOWN = new Color(40, 40, 110);
 
-    // ── Componenti ────────────────────────────────────────────────────────────
-
-    private JLabel   scoreLabel, bannerLabel;
-    private JLabel   playerHandName, luigiHandName;
-    private JLabel[] playerCards    = new JLabel[GameModel.HAND_SIZE];
-    private JLabel[] luigiCards     = new JLabel[GameModel.HAND_SIZE];
-    private JButton[] scartaButtons = new JButton[GameModel.HAND_SIZE];
-    private JButton  actionButton;
-
-    // ── Costruzione UI ────────────────────────────────────────────────────────
+    private JLabel   punteggioLabel, bannerLabel;
+    private JLabel   nomeManoGiocatore, nomeManoLuigi;
+    private JLabel[] carteGiocatore    = new JLabel[GameModel.DIMENSIONE];
+    private JLabel[] carteLuigi        = new JLabel[GameModel.DIMENSIONE];
+    private JButton[] bottoniScarto    = new JButton[GameModel.DIMENSIONE];
+    private JButton  bottoneAzione;
 
     public GameView() {
         super("Luigi's Picture Poker");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout(8, 8));
         getRootPane().setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        add(buildTop(),    BorderLayout.NORTH);
-        add(buildHands(),  BorderLayout.CENTER);
-        add(buildBottom(), BorderLayout.SOUTH);
+        
+        add(costruisciAlto(), BorderLayout.NORTH);
+        
+        JPanel areaGioco = new JPanel(new BorderLayout(0, 8));
+        areaGioco.add(costruisciMani(), BorderLayout.CENTER);
+        areaGioco.add(costruisciBasso(), BorderLayout.SOUTH);
+        add(areaGioco, BorderLayout.CENTER);
+        
+        add(costruisciLegenda(), BorderLayout.EAST);
+        
         pack();
         setResizable(false);
         setLocationRelativeTo(null);
     }
 
-    private JPanel buildTop() {
+    private JPanel costruisciAlto() {
         JPanel p = new JPanel(new GridLayout(2, 1, 0, 4));
-        scoreLabel = new JLabel("Vinte: 0  |  Perse: 0  |  Pari: 0", SwingConstants.CENTER);
-        scoreLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        punteggioLabel = new JLabel("Vinte: 0  |  Perse: 0  |  Pari: 0", SwingConstants.CENTER);
+        punteggioLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
         bannerLabel = new JLabel(" ", SwingConstants.CENTER);
         bannerLabel.setFont(new Font("SansSerif", Font.BOLD, 15));
         bannerLabel.setOpaque(true);
-        p.add(scoreLabel);
+        p.add(punteggioLabel);
         p.add(bannerLabel);
         return p;
     }
 
-    private JPanel buildHands() {
+    private JPanel costruisciMani() {
         JPanel p = new JPanel(new GridLayout(2, 1, 0, 16));
-        p.add(buildHandPanel("Luigi", luigiCards,  luigiHandName  = new JLabel("Luigi", SwingConstants.CENTER)));
-        p.add(buildHandPanel("Tu",    playerCards, playerHandName = new JLabel("Tu",    SwingConstants.CENTER)));
+        p.add(costruisciPannelloMano("Luigi", carteLuigi,  nomeManoLuigi  = new JLabel("Luigi", SwingConstants.CENTER)));
+        p.add(costruisciPannelloMano("Tu",    carteGiocatore, nomeManoGiocatore = new JLabel("Tu",    SwingConstants.CENTER)));
         return p;
     }
 
-    private JPanel buildHandPanel(String title, JLabel[] cards, JLabel nameLabel) {
-        nameLabel.setFont(new Font("SansSerif", Font.BOLD, 12));
-        JPanel row = new JPanel(new GridLayout(1, GameModel.HAND_SIZE, 6, 0));
-        for (int i = 0; i < GameModel.HAND_SIZE; i++) {
-            cards[i] = makeCard();
-            row.add(cards[i]);
+    private JPanel costruisciPannelloMano(String titolo, JLabel[] carte, JLabel etichettaNome) {
+        etichettaNome.setFont(new Font("SansSerif", Font.BOLD, 12));
+        JPanel riga = new JPanel(new GridLayout(1, GameModel.DIMENSIONE, 6, 0));
+        for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+            carte[i] = creaCarta();
+            riga.add(carte[i]);
         }
         JPanel p = new JPanel(new BorderLayout(0, 4));
-        p.add(nameLabel, BorderLayout.NORTH);
-        p.add(row,       BorderLayout.CENTER);
+        p.add(etichettaNome, BorderLayout.NORTH);
+        p.add(riga,          BorderLayout.CENTER);
         return p;
     }
 
-    private JLabel makeCard() {
+    private JLabel creaCarta() {
         JLabel l = new JLabel("", SwingConstants.CENTER);
-        l.setFont(new Font("SansSerif", Font.BOLD, 13));
-        l.setPreferredSize(new Dimension(85, 90));
+        l.setPreferredSize(new Dimension(85, 120));
         l.setOpaque(true);
-        l.setBackground(Color.LIGHT_GRAY);
+        l.setBackground(Color.WHITE);
         l.setBorder(BorderFactory.createLineBorder(Color.GRAY));
         return l;
     }
 
-    private JPanel buildBottom() {
+    private JPanel costruisciLegenda() {
+        JPanel p = new JPanel(new BorderLayout(0, 8));
+        p.setBorder(BorderFactory.createTitledBorder("Valore Carte"));
+        p.setPreferredSize(new Dimension(130, 0));
+
+        JLabel titolo = new JLabel("Dal più debole al più forte:", SwingConstants.CENTER);
+        titolo.setFont(new Font("SansSerif", Font.BOLD, 10));
+        p.add(titolo, BorderLayout.NORTH);
+
+        JPanel griglia = new JPanel(new GridLayout(3, 2, 4, 4));
+        for (int i = 0; i < GameModel.SIMBOLI.length; i++) {
+            JPanel item = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+            item.setOpaque(false);
+            
+            ImageIcon icona = caricaIcona(GameModel.SIMBOLI[i]);
+            Image img = icona.getImage().getScaledInstance(24, 34, Image.SCALE_SMOOTH);
+            item.add(new JLabel(new ImageIcon(img)));
+            
+            JLabel lbl = new JLabel(GameModel.SIMBOLI[i]);
+            lbl.setFont(new Font("SansSerif", Font.PLAIN, 9));
+            item.add(lbl);
+            
+            griglia.add(item);
+        }
+        p.add(griglia, BorderLayout.CENTER);
+        return p;
+    }
+
+    private JPanel costruisciBasso() {
         JPanel p = new JPanel(new GridLayout(2, 1, 0, 6));
 
-        JPanel row = new JPanel(new GridLayout(1, GameModel.HAND_SIZE, 6, 0));
-        for (int i = 0; i < GameModel.HAND_SIZE; i++) {
-            scartaButtons[i] = new JButton("Scarta");
-            scartaButtons[i].setEnabled(false);
-            row.add(scartaButtons[i]);
+        JPanel riga = new JPanel(new GridLayout(1, GameModel.DIMENSIONE, 6, 0));
+        for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+            bottoniScarto[i] = new JButton("Scarta");
+            bottoniScarto[i].setEnabled(false);
+            riga.add(bottoniScarto[i]);
         }
-        p.add(row);
+        p.add(riga);
 
-        actionButton = new JButton("Inizia");
-        actionButton.setFont(new Font("SansSerif", Font.BOLD, 13));
-        p.add(actionButton);
+        bottoneAzione = new JButton("Inizia");
+        bottoneAzione.setFont(new Font("SansSerif", Font.BOLD, 13));
+        p.add(bottoneAzione);
 
         return p;
     }
 
-    // ── Aggiornamento (chiamato dal Controller) ───────────────────────────────
-
-    public void updateScore(int w, int l, int d) {
-        scoreLabel.setText("Vinte: " + w + "  |  Perse: " + l + "  |  Pari: " + d);
+    public void aggiornaPunteggio(int vittorie, int sconfitte, int pareggi) {
+        punteggioLabel.setText("Vinte: " + vittorie + "  |  Perse: " + sconfitte + "  |  Pari: " + pareggi);
     }
 
-    /** character=null → coperta, character="" → vuota */
-    public void showLuigiCard(int i, String character) {
-        if (character == null) {
-            luigiCards[i].setText("?");
-            luigiCards[i].setForeground(Color.WHITE);
-            luigiCards[i].setBackground(FACEDOWN);
-        } else if (character.isEmpty()) {
-            luigiCards[i].setText("");
-            luigiCards[i].setForeground(Color.BLACK);
-            luigiCards[i].setBackground(Color.LIGHT_GRAY);
+    public void mostraCartaLuigi(int i, String simbolo) {
+        if (simbolo == null) {
+            carteLuigi[i].setIcon(null);
+            carteLuigi[i].setText("?");
+            carteLuigi[i].setForeground(Color.WHITE);
+            carteLuigi[i].setBackground(new Color(40, 40, 110));
+        } else if (simbolo.isEmpty()) {
+            carteLuigi[i].setIcon(null);
+            carteLuigi[i].setText("");
+            carteLuigi[i].setForeground(Color.BLACK);
+            carteLuigi[i].setBackground(Color.LIGHT_GRAY);
         } else {
-            luigiCards[i].setText("<html><center>" + character + "</center></html>");
-            luigiCards[i].setForeground(Color.BLACK);
-            luigiCards[i].setBackground(CARD_BG[charIndex(character)]);
+            carteLuigi[i].setText("");
+            carteLuigi[i].setIcon(caricaIcona(simbolo));
+            carteLuigi[i].setBackground(Color.WHITE);
         }
-        luigiCards[i].setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+        carteLuigi[i].setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
     }
 
-    public void showPlayerCard(int i, String character, boolean discarded) {
-        if (character == null) {
-            playerCards[i].setText("");
-            playerCards[i].setBackground(Color.LIGHT_GRAY);
-            playerCards[i].setForeground(Color.BLACK);
-            playerCards[i].setBorder(BorderFactory.createLineBorder(Color.GRAY));
+    public void mostraCartaGiocatore(int i, String simbolo, boolean scartata) {
+        if (simbolo == null) {
+            carteGiocatore[i].setIcon(null);
+            carteGiocatore[i].setText("");
+            carteGiocatore[i].setBackground(Color.LIGHT_GRAY);
+            carteGiocatore[i].setForeground(Color.BLACK);
+            carteGiocatore[i].setBorder(BorderFactory.createLineBorder(Color.GRAY));
         } else {
-            playerCards[i].setText("<html><center>" + character + "</center></html>");
-            playerCards[i].setBackground(discarded ? Color.DARK_GRAY : CARD_BG[charIndex(character)]);
-            playerCards[i].setForeground(discarded ? Color.LIGHT_GRAY : Color.BLACK);
-            playerCards[i].setBorder(BorderFactory.createLineBorder(
-                discarded ? Color.RED : Color.DARK_GRAY, discarded ? 2 : 1));
+            carteGiocatore[i].setText("");
+            carteGiocatore[i].setIcon(caricaIcona(simbolo));
+            carteGiocatore[i].setBackground(Color.WHITE);
+            if (scartata) {
+                carteGiocatore[i].setBorder(BorderFactory.createLineBorder(Color.RED, 3));
+            } else {
+                carteGiocatore[i].setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 1));
+            }
         }
-        if (scartaButtons[i].isEnabled())
-            scartaButtons[i].setText(discarded ? "Tieni" : "Scarta");
+        if (bottoniScarto[i].isEnabled())
+            bottoniScarto[i].setText(scartata ? "Tieni" : "Scarta");
     }
 
-    public void setScartaEnabled(boolean enabled) {
-        for (int i = 0; i < GameModel.HAND_SIZE; i++) {
-            scartaButtons[i].setEnabled(enabled);
-            scartaButtons[i].setText("Scarta");
+    public void impostaScartoAbilitato(boolean abilitato) {
+        for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+            bottoniScarto[i].setEnabled(abilitato);
+            bottoniScarto[i].setText("Scarta");
         }
     }
 
-    public void setActionLabel(String text) { actionButton.setText(text); }
+    public void impostaEtichettaAzione(String testo) { bottoneAzione.setText(testo); }
 
-    public void showBanner(String text, Color fg, Color bg) {
-        bannerLabel.setText(text);
-        bannerLabel.setForeground(fg);
-        bannerLabel.setBackground(bg);
+    public void mostraBanner(String testo, Color primoPiano, Color sfondo) {
+        bannerLabel.setText(testo);
+        bannerLabel.setForeground(primoPiano);
+        bannerLabel.setBackground(sfondo);
     }
 
-    public void clearBanner() {
+    public void pulisciBanner() {
         bannerLabel.setText(" ");
         bannerLabel.setBackground(getBackground());
     }
 
-    public void setPlayerHandName(String s) { playerHandName.setText("Tu — " + s); }
-    public void setLuigiHandName(String s)  { luigiHandName.setText("Luigi — " + s); }
-    public void resetHandNames()            { playerHandName.setText("Tu"); luigiHandName.setText("Luigi"); }
+    public void impostaNomeManoGiocatore(String s) { nomeManoGiocatore.setText("Tu — " + s); }
+    public void impostaNomeManoLuigi(String s)  { nomeManoLuigi.setText("Luigi — " + s); }
+    public void reimpostaNomiMani()             { nomeManoGiocatore.setText("Tu"); nomeManoLuigi.setText("Luigi"); }
 
-    // ── Listener ─────────────────────────────────────────────────────────────
+    public void aggiungiAscoltatoreAzione(ActionListener l)        { bottoneAzione.addActionListener(l); }
+    public void aggiungiAscoltatoreScarto(int i, ActionListener l) { bottoniScarto[i].addActionListener(l); }
 
-    public void addActionListener(ActionListener l)        { actionButton.addActionListener(l); }
-    public void addScartaListener(int i, ActionListener l) { scartaButtons[i].addActionListener(l); }
+    private ImageIcon caricaIcona(String simbolo) {
+        int indice = indiceSimbolo(simbolo);
+        ImageIcon icona = new ImageIcon(PERCORSI_IMMAGINI[indice]);
+        Image immagine = icona.getImage().getScaledInstance(75, 105, Image.SCALE_SMOOTH);
+        return new ImageIcon(immagine);
+    }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
-
-    private int charIndex(String name) {
-        for (int i = 0; i < GameModel.CHARACTERS.length; i++)
-            if (GameModel.CHARACTERS[i].equals(name)) return i;
+    private int indiceSimbolo(String nome) {
+        for (int i = 0; i < GameModel.SIMBOLI.length; i++)
+            if (GameModel.SIMBOLI[i].equals(nome)) return i;
         return 0;
     }
 }

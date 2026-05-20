@@ -12,7 +12,7 @@ public class GameModel {
     static final int ATTESA = 0, TURNO_GIOCATORE = 1, RISULTATO = 2;
 
     // Peggiore → migliore: Stella < Mario < Luigi < Fiore < Fungo < Nuvola
-    public static final String[] SIMBOLI = { "Stella", "Mario", "Luigi", "Fiore", "Fungo", "Nuvola" };
+    public static final String[] SIMBOLI = { "Stelle", "Picche", "Fiori", "Cuori", "Quadri", "Nuvole" };
 
     public static final String[] COMBINAZIONI = {
         "Niente", "Coppia", "Doppia coppia", "Tris", "Full house", "Poker", "Cinque uguali"
