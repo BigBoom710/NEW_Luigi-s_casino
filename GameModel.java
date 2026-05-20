@@ -1,5 +1,12 @@
 import java.util.*;
 
+/*
+ * for/if senza graffe → corpo di una sola istruzione
+ * condizione ? a : b  → if (condizione) a; else b;
+ * metodo su una riga  → metodo normale con corpo su più righe
+ * if (...) return;    → esce subito, il resto esegue solo se falso
+ */
+
 public class GameModel {
 
     static final int ATTESA = 0, TURNO_GIOCATORE = 1, RISULTATO = 2;
