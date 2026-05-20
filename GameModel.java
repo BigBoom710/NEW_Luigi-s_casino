@@ -22,19 +22,15 @@ public class GameModel {
     private int vittorie, sconfitte, pareggi;
     private List<String> mazzo = new ArrayList<>();
 
-    // ── Mazzo ────────────────────────────────────────────────────────────────
-
     private void costruisciMazzo() {
         mazzo.clear();
-        for (int copia = 0; copia < 5; copia++)          // 5 copie x 6 simboli = 30 carte
+        for (int copia = 0; copia < 5; copia++)    // 5 copie x 6 simboli = 30 carte
             for (String simbolo : SIMBOLI)
                 mazzo.add(simbolo);
         Collections.shuffle(mazzo);
     }
 
     private String pesca() { return mazzo.remove(mazzo.size() - 1); }
-
-    // ── Azioni ───────────────────────────────────────────────────────────────
 
     public void distribuisci() {
         costruisciMazzo();
@@ -53,15 +49,12 @@ public class GameModel {
     public void pescaERisolvi() {
         if (stato != TURNO_GIOCATORE) return;
 
-        // Giocatore pesca le carte scartate
         for (int i = 0; i < DIMENSIONE; i++)
             if (daScartare[i]) manoGiocatore[i] = pesca();
 
-        // Luigi scarta i singoli (strategia ufficiale del gioco originale)
         for (int i = 0; i < DIMENSIONE; i++)
             if (luigiDeveScartare(i)) manoLuigi[i] = pesca();
 
-        // Valuta e confronta
         punteggioGiocatore = valuta(manoGiocatore);
         punteggioLuigi     = valuta(manoLuigi);
         esito = confronta(punteggioGiocatore, punteggioLuigi);
@@ -73,7 +66,6 @@ public class GameModel {
         stato = RISULTATO;
     }
 
-    // Vera strategia di Luigi: scarta tutte le carte che compaiono una sola volta
     private boolean luigiDeveScartare(int i) {
         int contatore = 0;
         for (String carta : manoLuigi)
@@ -81,7 +73,6 @@ public class GameModel {
         return contatore == 1;
     }
 
-    // Costruisce la mappa frequenze
     private Map<String, Integer> costruisciFrequenze(String[] mano) {
         Map<String, Integer> frequenze = new HashMap<>();
         for (String carta : mano) {
@@ -91,11 +82,9 @@ public class GameModel {
         return frequenze;
     }
 
-    // Restituisce {rankMano, rankPrimario, rankSecondario} per confronto
     private int[] valuta(String[] mano) {
         final Map<String, Integer> frequenze = costruisciFrequenze(mano);
 
-        // Ordina per frequenza desc, poi per valore carta desc
         List<Map.Entry<String, Integer>> voci = new ArrayList<>(frequenze.entrySet());
         Collections.sort(voci, new Comparator<Map.Entry<String, Integer>>() {
             @Override
@@ -105,21 +94,20 @@ public class GameModel {
             }
         });
 
-        int primaFrequenza  = voci.get(0).getValue();
+        int primaFrequenza   = voci.get(0).getValue();
         int secondaFrequenza = voci.size() > 1 ? voci.get(1).getValue() : 0;
-        int primoIndice     = indiceSimbolo(voci.get(0).getKey());
-        int secondoIndice   = voci.size() > 1 ? indiceSimbolo(voci.get(1).getKey()) : 0;
+        int primoIndice      = indiceSimbolo(voci.get(0).getKey());
+        int secondoIndice    = voci.size() > 1 ? indiceSimbolo(voci.get(1).getKey()) : 0;
 
-        if (primaFrequenza == 5)                              return new int[]{ 6, primoIndice, 0            };
-        if (primaFrequenza == 4)                              return new int[]{ 5, primoIndice, 0            };
-        if (primaFrequenza == 3 && secondaFrequenza == 2)    return new int[]{ 4, primoIndice, secondoIndice };
-        if (primaFrequenza == 3)                              return new int[]{ 3, primoIndice, 0            };
-        if (primaFrequenza == 2 && secondaFrequenza == 2)    return new int[]{ 2, primoIndice, secondoIndice };
-        if (primaFrequenza == 2)                              return new int[]{ 1, primoIndice, 0            };
-        return new int[]{ 0, primoIndice, 0 };  // niente: valore carta piu alta
+        if (primaFrequenza == 5)                           return new int[]{ 6, primoIndice, 0            };
+        if (primaFrequenza == 4)                           return new int[]{ 5, primoIndice, 0            };
+        if (primaFrequenza == 3 && secondaFrequenza == 2) return new int[]{ 4, primoIndice, secondoIndice };
+        if (primaFrequenza == 3)                           return new int[]{ 3, primoIndice, 0            };
+        if (primaFrequenza == 2 && secondaFrequenza == 2) return new int[]{ 2, primoIndice, secondoIndice };
+        if (primaFrequenza == 2)                           return new int[]{ 1, primoIndice, 0            };
+        return new int[]{ 0, primoIndice, 0 };
     }
 
-    // Confronto lessicografico: positivo = a vince
     private int confronta(int[] a, int[] b) {
         for (int i = 0; i < a.length; i++)
             if (a[i] != b[i]) return Integer.compare(a[i], b[i]);
@@ -134,14 +122,10 @@ public class GameModel {
 
     public void prossimoTurno() { stato = ATTESA; }
 
-    // ── Getter ────────────────────────────────────────────────────────────────
+    public int     getStato()                  { return stato; }
+    public String  getCartaGiocatore(int i)    { return manoGiocatore[i]; }
+    public String  getCartaLuigi(int i)        { return manoLuigi[i]; }
 
-    public int     getStato()                   { return stato; }
-    public String  getCartaGiocatore(int i)     { return manoGiocatore[i]; }
-    public String  getCartaLuigi(int i)         { return manoLuigi[i]; }
-
-    // Restituisce le carte ordinate per gruppo (freq desc, poi valore desc)
-    // Usato dalla View a fine partita per mostrare coppie/tris raggruppati
     public String[] manoOrdinata(String[] mano) {
         final Map<String, Integer> frequenze = costruisciFrequenze(mano);
         List<String> ordinata = new ArrayList<>(Arrays.asList(mano));
@@ -155,14 +139,14 @@ public class GameModel {
         return ordinata.toArray(new String[0]);
     }
 
-    public String[] getManoOrdinataGiocatore()  { return manoOrdinata(manoGiocatore); }
-    public String[] getManoOrdinataLuigi()       { return manoOrdinata(manoLuigi); }
-    public boolean  isScartata(int i)            { return daScartare[i]; }
-    public int[]    getPunteggioGiocatore()      { return punteggioGiocatore; }
-    public int[]    getPunteggioLuigi()          { return punteggioLuigi; }
-    public int      getEsito()                   { return esito; }
-    public int      getVittorie()                { return vittorie; }
-    public int      getSconfitte()               { return sconfitte; }
-    public int      getPareggi()                 { return pareggi; }
-    public String   nomeCombinazione(int[] p)    { return COMBINAZIONI[p[0]]; }
+    public String[] getManoOrdinataGiocatore() { return manoOrdinata(manoGiocatore); }
+    public String[] getManoOrdinataLuigi()      { return manoOrdinata(manoLuigi); }
+    public boolean  isScartata(int i)           { return daScartare[i]; }
+    public int[]    getPunteggioGiocatore()     { return punteggioGiocatore; }
+    public int[]    getPunteggioLuigi()         { return punteggioLuigi; }
+    public int      getEsito()                  { return esito; }
+    public int      getVittorie()               { return vittorie; }
+    public int      getSconfitte()              { return sconfitte; }
+    public int      getPareggi()                { return pareggi; }
+    public String   nomeCombinazione(int[] p)   { return COMBINAZIONI[p[0]]; }
 }
