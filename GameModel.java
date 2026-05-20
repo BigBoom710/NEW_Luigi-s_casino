@@ -81,16 +81,28 @@ public class GameModel {
         return count == 1;
     }
 
+    // Costruisce la mappa frequenze senza lambda
+    private Map<String, Integer> buildFreq(String[] hand) {
+        Map<String, Integer> freq = new HashMap<>();
+        for (String c : hand) {
+            Integer cur = freq.get(c);
+            freq.put(c, cur == null ? 1 : cur + 1);
+        }
+        return freq;
+    }
+
     // Restituisce {rankMano, rankPrimario, rankSecondario} per confronto
     private int[] evaluate(String[] hand) {
-        Map<String, Integer> freq = new HashMap<>();
-        for (String c : hand) freq.merge(c, 1, Integer::sum);
+        final Map<String, Integer> freq = buildFreq(hand);
 
         // Ordina per frequenza desc, poi per valore carta desc
         List<Map.Entry<String, Integer>> e = new ArrayList<>(freq.entrySet());
-        e.sort((a, b) -> {
-            int d = Integer.compare(b.getValue(), a.getValue());
-            return d != 0 ? d : Integer.compare(cardRank(b.getKey()), cardRank(a.getKey()));
+        Collections.sort(e, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> a, Map.Entry<String, Integer> b) {
+                int d = Integer.compare(b.getValue(), a.getValue());
+                return d != 0 ? d : Integer.compare(cardRank(b.getKey()), cardRank(a.getKey()));
+            }
         });
 
         int f0 = e.get(0).getValue();
@@ -131,12 +143,14 @@ public class GameModel {
     // Restituisce le carte ordinate per gruppo (freq desc, poi valore desc)
     // Usato dalla View a fine partita per mostrare coppie/tris raggruppati
     public String[] sortedHand(String[] hand) {
-        Map<String, Integer> freq = new HashMap<>();
-        for (String c : hand) freq.merge(c, 1, Integer::sum);
+        final Map<String, Integer> freq = buildFreq(hand);
         List<String> sorted = new ArrayList<>(Arrays.asList(hand));
-        sorted.sort((a, b) -> {
-            int d = Integer.compare(freq.get(b), freq.get(a));
-            return d != 0 ? d : Integer.compare(cardRank(b), cardRank(a));
+        Collections.sort(sorted, new Comparator<String>() {
+            @Override
+            public int compare(String a, String b) {
+                int d = Integer.compare(freq.get(b), freq.get(a));
+                return d != 0 ? d : Integer.compare(cardRank(b), cardRank(a));
+            }
         });
         return sorted.toArray(new String[0]);
     }
