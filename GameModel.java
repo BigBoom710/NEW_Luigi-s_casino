@@ -146,6 +146,24 @@ public class GameModel {
         return ordinata.toArray(new String[0]);
     }
 
+    public int[] calcolaPermutazione(String[] originale, String[] ordinata) {
+        int[] perm = new int[DIMENSIONE];
+        boolean[] usato = new boolean[DIMENSIONE];
+        for (int i = 0; i < DIMENSIONE; i++) {
+            for (int j = 0; j < DIMENSIONE; j++) {
+                if (!usato[j] && ordinata[i].equals(originale[j])) {
+                    perm[i] = j;
+                    usato[j] = true;
+                    break;
+                }
+            }
+        }
+        return perm;
+    }
+
+    public int[] getPermutazioneGiocatore() { return calcolaPermutazione(manoGiocatore, getManoOrdinataGiocatore()); }
+    public int[] getPermutazioneLuigi() { return calcolaPermutazione(manoLuigi, getManoOrdinataLuigi()); }
+
     public String[] getManoOrdinataGiocatore() { return manoOrdinata(manoGiocatore); }
     public String[] getManoOrdinataLuigi()      { return manoOrdinata(manoLuigi); }
     public boolean  isScartata(int i)           { return daScartare[i]; }

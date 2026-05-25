@@ -61,9 +61,11 @@ public class GameView extends JFrame {
 
     private JPanel costruisciPannelloMano(String titolo, JLabel[] carte, JLabel etichettaNome) {
         etichettaNome.setFont(new Font("SansSerif", Font.BOLD, 12));
-        JPanel riga = new JPanel(new GridLayout(1, GameModel.DIMENSIONE, 6, 0));
+        JPanel riga = new JPanel(null);
+        riga.setPreferredSize(new Dimension(85 * GameModel.DIMENSIONE + 6 * (GameModel.DIMENSIONE - 1), 120));
         for (int i = 0; i < GameModel.DIMENSIONE; i++) {
             carte[i] = creaCarta();
+            carte[i].setBounds(i * (85 + 6), 0, 85, 120);
             riga.add(carte[i]);
         }
         JPanel p = new JPanel(new BorderLayout(0, 4));
@@ -83,29 +85,36 @@ public class GameView extends JFrame {
 
     private JPanel costruisciLegenda() {
         JPanel p = new JPanel(new BorderLayout(0, 8));
-        p.setBorder(BorderFactory.createTitledBorder("Valore Carte"));
-        p.setPreferredSize(new Dimension(130, 0));
+        p.setBorder(BorderFactory.createTitledBorder("Gerarchia Carte"));
+        p.setPreferredSize(new Dimension(140, 0));
 
-        JLabel titolo = new JLabel("Dal più debole al più forte:", SwingConstants.CENTER);
-        titolo.setFont(new Font("SansSerif", Font.BOLD, 10));
+        JLabel titolo = new JLabel("<html><div style='text-align: center;'>Dal più debole<br>al più forte</div></html>", SwingConstants.CENTER);
+        titolo.setFont(new Font("SansSerif", Font.BOLD, 11));
         p.add(titolo, BorderLayout.NORTH);
 
-        JPanel griglia = new JPanel(new GridLayout(3, 2, 4, 4));
+        JPanel lista = new JPanel(new GridLayout(6, 1, 0, 4));
         for (int i = 0; i < GameModel.SIMBOLI.length; i++) {
-            JPanel item = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 2));
+            JPanel item = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 2));
             item.setOpaque(false);
             
+            JLabel numero = new JLabel((i + 1) + ".");
+            numero.setFont(new Font("SansSerif", Font.BOLD, 12));
+            numero.setForeground(Color.GRAY);
+            item.add(numero);
+            
             ImageIcon icona = caricaIcona(GameModel.SIMBOLI[i]);
-            Image img = icona.getImage().getScaledInstance(24, 34, Image.SCALE_SMOOTH);
-            item.add(new JLabel(new ImageIcon(img)));
+            Image img = icona.getImage().getScaledInstance(28, 40, Image.SCALE_SMOOTH);
+            JLabel lblIcona = new JLabel(new ImageIcon(img));
+            lblIcona.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+            item.add(lblIcona);
             
             JLabel lbl = new JLabel(GameModel.SIMBOLI[i]);
-            lbl.setFont(new Font("SansSerif", Font.PLAIN, 9));
+            lbl.setFont(new Font("SansSerif", Font.BOLD, 11));
             item.add(lbl);
             
-            griglia.add(item);
+            lista.add(item);
         }
-        p.add(griglia, BorderLayout.CENTER);
+        p.add(lista, BorderLayout.CENTER);
         return p;
     }
 
@@ -184,6 +193,67 @@ public class GameView extends JFrame {
         bannerLabel.setText(testo);
         bannerLabel.setForeground(primoPiano);
         bannerLabel.setBackground(sfondo);
+    }
+
+    public void animaRiordino(int[] permLuigi, int[] permGiocatore, Runnable fine) {
+        Timer t = new Timer(20, null);
+        int passiTotali = 25;
+        int[] step = {0};
+        
+        int[] startXLuigi = new int[GameModel.DIMENSIONE];
+        int[] startXGiocatore = new int[GameModel.DIMENSIONE];
+        
+        for(int i=0; i<GameModel.DIMENSIONE; i++) {
+            startXLuigi[i] = carteLuigi[i].getX();
+            startXGiocatore[i] = carteGiocatore[i].getX();
+        }
+
+        t.addActionListener(e -> {
+            step[0]++;
+            float frazione = (float) step[0] / passiTotali;
+            // Easing
+            float ease = frazione * (2 - frazione);
+
+            for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+                int targetX = i * (85 + 6);
+                
+                int oldIndexLuigi = permLuigi[i];
+                int curXLuigi = startXLuigi[oldIndexLuigi];
+                carteLuigi[oldIndexLuigi].setLocation((int)(curXLuigi + (targetX - curXLuigi) * ease), carteLuigi[oldIndexLuigi].getY());
+                
+                int oldIndexGiocatore = permGiocatore[i];
+                int curXGiocatore = startXGiocatore[oldIndexGiocatore];
+                carteGiocatore[oldIndexGiocatore].setLocation((int)(curXGiocatore + (targetX - curXGiocatore) * ease), carteGiocatore[oldIndexGiocatore].getY());
+            }
+            
+            if (step[0] >= passiTotali) {
+                t.stop();
+                
+                // Riordina l'array di JLabel per rispecchiare la logica
+                JLabel[] nuoveCarteLuigi = new JLabel[GameModel.DIMENSIONE];
+                JLabel[] nuoveCarteGiocatore = new JLabel[GameModel.DIMENSIONE];
+                for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+                    nuoveCarteLuigi[i] = carteLuigi[permLuigi[i]];
+                    nuoveCarteGiocatore[i] = carteGiocatore[permGiocatore[i]];
+                }
+                carteLuigi = nuoveCarteLuigi;
+                carteGiocatore = nuoveCarteGiocatore;
+                
+                if (fine != null) fine.run();
+            }
+        });
+        t.start();
+    }
+    
+    public void resettaPosizioniCarte() {
+        for (int i = 0; i < GameModel.DIMENSIONE; i++) {
+            carteLuigi[i].setBounds(i * (85 + 6), 0, 85, 120);
+            carteGiocatore[i].setBounds(i * (85 + 6), 0, 85, 120);
+        }
+    }
+
+    public void abilitaBottoneAzione(boolean abilitato) {
+        bottoneAzione.setEnabled(abilitato);
     }
 
     public void pulisciBanner() {
